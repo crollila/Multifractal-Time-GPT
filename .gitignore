@@ -1,0 +1,32 @@
+# Secrets - never commit real keys
+.env
+.env.local
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Node (for the integration folder)
+node_modules/
+
+# Data and run artefacts
+*.csv
+!tests/**/*.csv
+data/
+scores.txt
+events.csv
+*.parquet
+
+# OS
+.DS_Store
+Thumbs.db

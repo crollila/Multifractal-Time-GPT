@@ -1,0 +1,54 @@
+{
+  "A: regime-dependent news impact": {
+    "legacy_threshold": {
+      "net_pnl": 9486.538359521846,
+      "sharpe": 5.5548755482640795,
+      "n_trades": 741,
+      "cap_binding_rate": 0.0
+    },
+    "pooled_vol_target": {
+      "net_pnl": 21821.249896249654,
+      "sharpe": 4.169572089583888,
+      "n_trades": 939,
+      "cap_binding_rate": 0.531416400425985
+    },
+    "regime_fixed_horizon": {
+      "net_pnl": 30180.769086702254,
+      "sharpe": 7.865680515438152,
+      "n_trades": 611,
+      "cap_binding_rate": 0.8346972176759411
+    },
+    "regime_conditioned": {
+      "net_pnl": 28929.22534588551,
+      "sharpe": 7.577554659188232,
+      "n_trades": 611,
+      "cap_binding_rate": 0.8346972176759411
+    }
+  },
+  "B: NULL - identical impact in every regime": {
+    "legacy_threshold": {
+      "net_pnl": 31354.12155257832,
+      "sharpe": 17.639020302144942,
+      "n_trades": 741,
+      "cap_binding_rate": 0.0
+    },
+    "pooled_vol_target": {
+      "net_pnl": 85315.05279621665,
+      "sharpe": 15.232830625918332,
+      "n_trades": 939,
+      "cap_binding_rate": 0.5548455804046858
+    },
+    "regime_fixed_horizon": {
+      "net_pnl": 85394.4540482288,
+      "sharpe": 15.233925263949683,
+      "n_trades": 939,
+      "cap_binding_rate": 0.5537806176783813
+    },
+    "regime_conditioned": {
+      "net_pnl": 67819.79024340924,
+      "sharpe": 13.254151928186666,
+      "n_trades": 939,
+      "cap_binding_rate": 0.6900958466453674
+    }
+  }
+}

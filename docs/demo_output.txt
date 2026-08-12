@@ -1,0 +1,120 @@
+
+==============================================================================
+A: regime-dependent news impact
+==============================================================================
+ground truth: {"CALM": 1.1, "NORMAL": 0.8, "TURBULENT": 0.35, "CRISIS": -0.4}
+80,000 bars, 2,418 news events
+[1/4] fitting MSM on bars 0-40000 (40000 obs)...
+      m0=1.498 sigma=0.00104 gamma_1=0.00054 b=3.61 K=5 ll=226,118
+[2/4] calibrating regime cutoffs from the fitted model...
+      1164 training events / 1254 test events
+[3/4] calibrating per-regime response on training events only...
+[4/4] evaluating 4 strategies out-of-sample...
+
+==============================================================================
+calibrated per-regime response (training data only)
+==============================================================================
+regime         beta      raw      se       t  shrink      n
+--------------------------------------------------------
+CALM          0.786    0.875   0.170    5.15    0.82    149
+NORMAL        0.507    0.521   0.117    4.45    0.91    339
+TURBULENT     0.516    0.531   0.120    4.43    0.90    273
+CRISIS       -0.022   -0.059   0.112   -0.53    0.91    372
+
+==============================================================================
+out-of-sample results
+==============================================================================
+strategy               trades      net P&L  Sharpe        95% CI     hit    maxDD ret/trade       t
+----------------------------------------------------------------------------------------------------
+legacy_threshold          741        9,487    5.55 [ 2.26, 8.78]   57.8%     0.5%   0.0690%    2.73
+pooled_vol_target         939       21,821    4.17 [ 0.95, 7.40]   55.0%     1.7%   0.0263%    1.14
+regime_fixed_horizon      611       30,181    7.87 [ 4.72,11.13]   57.8%     0.4%   0.0984%    4.69
+regime_conditioned        611       28,929    7.58 [ 4.47,10.87]   57.1%     0.4%   0.0944%    4.53
+
+by-regime attribution, legacy bot:
+regime         n      net P&L  ret/trade     hit       t        avg $    sig_h  capped
+--------------------------------------------------------------------------------------
+CALM          90          798    0.0348%   57.8%    1.18       11,099   0.0026      0%
+NORMAL       191        5,462    0.1489%   63.9%    4.35       11,908   0.0041      0%
+TURBULENT    197        4,555    0.1499%   58.4%    3.21       12,159   0.0057      0%
+CRISIS       263       -1,328   -0.0380%   52.9%   -0.69       12,413   0.0086      0%
+
+by-regime attribution, regime-conditioned:
+regime         n      net P&L  ret/trade     hit       t        avg $    sig_h  capped
+--------------------------------------------------------------------------------------
+CALM         107        1,929    0.0358%   57.0%    1.34       50,884   0.0027    100%
+NORMAL       250       11,640    0.0921%   59.2%    3.14       50,704   0.0041     98%
+TURBULENT    254       16,612    0.1310%   56.7%    3.29       49,016   0.0057     62%
+CRISIS         0                    (no trades)
+
+vs legacy (bootstrap on per-trade return):
+  pooled_vol_target      -0.00043 [-0.00109, +0.00025]  not significant
+  regime_fixed_horizon   +0.00029 [-0.00035, +0.00092]  not significant
+  regime_conditioned     +0.00025 [-0.00039, +0.00088]  not significant
+
+events needed per regime to resolve a beta gap of 0.3:
+  CALM       have  149, need   751  (short by   602)
+  NORMAL     have  339, need   811  (short by   472)
+  TURBULENT  have  273, need   686  (short by   413)
+  CRISIS     have  372, need   819  (short by   447)
+
+==============================================================================
+B: NULL - identical impact in every regime
+==============================================================================
+ground truth: {"CALM": 0.7, "NORMAL": 0.7, "TURBULENT": 0.7, "CRISIS": 0.7}
+80,000 bars, 2,418 news events
+[1/4] fitting MSM on bars 0-40000 (40000 obs)...
+      m0=1.497 sigma=0.00104 gamma_1=0.00058 b=3.53 K=5 ll=226,109
+[2/4] calibrating regime cutoffs from the fitted model...
+      1164 training events / 1254 test events
+[3/4] calibrating per-regime response on training events only...
+[4/4] evaluating 4 strategies out-of-sample...
+
+==============================================================================
+calibrated per-regime response (training data only)
+==============================================================================
+regime         beta      raw      se       t  shrink      n
+--------------------------------------------------------
+CALM          0.623    0.602   0.152    3.95    0.35    155
+NORMAL        0.540    0.427   0.123    3.48    0.46    325
+TURBULENT     0.630    0.625   0.118    5.32    0.48    294
+CRISIS        0.742    0.840   0.108    7.78    0.52    359
+
+==============================================================================
+out-of-sample results
+==============================================================================
+strategy               trades      net P&L  Sharpe        95% CI     hit    maxDD ret/trade       t
+----------------------------------------------------------------------------------------------------
+legacy_threshold          741       31,354   17.64 [14.23,20.81]   64.1%     0.1%   0.2904%    9.64
+pooled_vol_target         939       85,315   15.23 [11.67,18.78]   61.1%     0.5%   0.2257%    8.38
+regime_fixed_horizon      939       85,394   15.23 [11.66,18.77]   61.1%     0.5%   0.2257%    8.38
+regime_conditioned        939       67,820   13.25 [ 9.73,16.71]   56.7%     0.5%   0.1840%    7.19
+
+by-regime attribution, legacy bot:
+regime         n      net P&L  ret/trade     hit       t        avg $    sig_h  capped
+--------------------------------------------------------------------------------------
+CALM          93          509    0.0121%   55.9%    0.45       11,384   0.0026      0%
+NORMAL       179        4,482    0.1274%   62.6%    3.83       11,982   0.0041      0%
+TURBULENT    219        7,465    0.2426%   59.8%    5.21       12,413   0.0057      0%
+CRISIS       250       18,898    0.5526%   72.0%    7.67       12,439   0.0088      0%
+
+by-regime attribution, regime-conditioned:
+regime         n      net P&L  ret/trade     hit       t        avg $    sig_h  capped
+--------------------------------------------------------------------------------------
+CALM         111          685    0.0127%   55.0%    0.52       52,313   0.0027    100%
+NORMAL       235        9,044    0.0747%   57.4%    2.58       52,022   0.0041    100%
+TURBULENT    279       28,367    0.1997%   58.8%    4.75       50,786   0.0057     63%
+CRISIS       314       47,298    0.4371%   68.2%    6.66       36,990   0.0088      0%
+
+vs legacy (bootstrap on per-trade return):
+  pooled_vol_target      -0.00065 [-0.00144, +0.00013]  not significant
+  regime_fixed_horizon   -0.00065 [-0.00144, +0.00013]  not significant
+  regime_conditioned     -0.00106 [-0.00183, -0.00030]  SIGNIFICANT
+
+events needed per regime to resolve a beta gap of 0.3:
+  CALM       have  155, need   629  (short by   474)
+  NORMAL     have  325, need   854  (short by   529)
+  TURBULENT  have  294, need   708  (short by   414)
+  CRISIS     have  359, need   729  (short by   370)
+
+wrote docs/demo_summary.json
