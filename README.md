@@ -7,6 +7,21 @@ into an existing execution bot.
 
 ---
 
+## Project history
+
+**July 2026 - Present** — Independent Quantitative Research
+
+Developed through July 2026: MSM volatility-regime estimation with Hamilton
+filtering and MLE calibration, fusion of per-regime news-response betas via
+empirical-Bayes shrinkage, a walk-forward ablation backtester with
+block-bootstrap confidence intervals, and a low-latency FastAPI regime service.
+
+This repository was published to GitHub in August 2026. GitHub's repository
+creation date reflects when the code was uploaded here, not when the work was
+done.
+
+---
+
 ## The question this answers
 
 > Have you ever seen success combining regime detection (MSM / volatility
