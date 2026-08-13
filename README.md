@@ -9,16 +9,20 @@ into an existing execution bot.
 
 ## Project history
 
-**July 2026 - Present** — Independent Quantitative Research
-
-Developed through July 2026: MSM volatility-regime estimation with Hamilton
-filtering and MLE calibration, fusion of per-regime news-response betas via
-empirical-Bayes shrinkage, a walk-forward ablation backtester with
-block-bootstrap confidence intervals, and a low-latency FastAPI regime service.
-
-This repository was published to GitHub in August 2026. GitHub's repository
-creation date reflects when the code was uploaded here, not when the work was
-done.
+- **April 2026** — the research question came out of an exchange with another
+  quant researcher who had forked my
+  [news-sentiment HFT bot](https://github.com/crollila/High-Frequency-Trading-Algorithm-with-Instant-News-Sentiment-Analysis):
+  is there an edge in conditioning news trades on volatility regime rather than
+  treating every headline equally?
+- **May–July 2026** — background research and planning: the multifractal
+  volatility literature (Calvet–Fisher MSM), regime-switching estimation, and
+  how a regime overlay could bolt onto the existing execution bot without
+  touching its hot path.
+- **August 2026** — full implementation and synthetic validation, built in a
+  focused sprint using AI-assisted development (Claude Code), then published
+  here. The design decisions and their rationale are documented in
+  [`docs/METHOD.md`](docs/METHOD.md); what the validation actually showed —
+  including the negative results — is in [`docs/FINDINGS.md`](docs/FINDINGS.md).
 
 ---
 
