@@ -41,10 +41,21 @@ trade it at all**.
 
 The edge was in the trades it refused, not in how it sized the ones it took.
 
+![Out-of-sample equity curves for the four strategies](docs/img/equity_curves.png)
+
 And on a control scenario where news impact is identical across regimes, the
 regime-conditioned strategy came within **0.09%** of the regime-agnostic one —
 it found nothing, because there was nothing to find. That property is what makes
 the first result worth believing.
+
+![Calibrated per-regime betas versus ground truth in both scenarios](docs/img/calibration.png)
+
+Left: the calibrator recovers the regime-dependent response from training events
+alone, including flagging CRISIS as having no reliable edge. Right: under the
+null, all four estimates collapse onto the same value — no invented effect. The
+P&L consequence, by regime:
+
+![Net P&L by regime, legacy versus regime-conditioned](docs/img/attribution.png)
 
 ---
 
@@ -95,6 +106,60 @@ Multi-horizon forecasts are exact in closed form, so a position can be sized
 against the volatility expected over its actual holding period rather than
 against trailing realised vol.
 
+This is what the filter sees on tape — regime bands from the causal filter only,
+tracking a latent volatility it never observes directly:
+
+![Price with regime bands and filtered versus true volatility](docs/img/regime_detection.png)
+
+---
+
+## How the pieces fit together
+
+```mermaid
+flowchart LR
+    subgraph live["Live trading loop (Node, existing bot)"]
+        BZ[Benzinga<br/>news feed] --> NEWS["news.mjs<br/>parse + strip"]
+        NEWS --> GPT["GPT sentiment<br/>score 0-100"]
+        GPT --> TAPE[("scores.txt<br/>+ timestamp, headline,<br/>latency (patched)")]
+        TAPE --> EXEC["s.mjs<br/>execution"]
+        EXEC --> ALPACA[Alpaca<br/>orders]
+    end
+
+    subgraph overlay["Regime overlay (Python, this repo)"]
+        BARS[price bars] --> FILT["incremental MSM filter<br/>one matvec per bar"]
+        FILT --> SVC["FastAPI /size<br/>&lt; 1 ms"]
+        MSM["MSM fit + regime cutoffs<br/>at warm-up, off the hot path"] --> FILT
+        CAL["per-regime β calibration<br/>(training events only)"] --> SVC
+    end
+
+    EXEC -- "score, price, equity" --> RM["regime.mjs<br/>25 ms timeout<br/>circuit breaker"]
+    RM -- "side, qty, limit,<br/>horizon | flat | null" --> EXEC
+    RM <--> SVC
+    EXEC -- "close (10 s loop)" --> RM
+
+    style TAPE fill:#eda100,fill-opacity:0.25
+    style SVC fill:#2a78d6,fill-opacity:0.25
+```
+
+If `regime.mjs` gets no answer inside its timeout, `s.mjs` falls back to its
+original sizing — the overlay can decline a trade, but it can never halt the bot.
+
+The research loop that produced the numbers above is walk-forward end to end:
+
+```mermaid
+flowchart LR
+    A[bars 0 .. T/2] --> B["fit MSM<br/>(MLE, Hamilton filter)"]
+    B --> C["simulate fitted model<br/>→ regime cutoffs<br/>(no realised quantiles)"]
+    B --> D["causal filter<br/>over full series"]
+    A2[training events] --> E["calibrate per-regime β<br/>James-Stein shrinkage"]
+    C --> E
+    D --> E
+    E --> F["freeze everything"]
+    F --> G["evaluate on bars T/2 .. T<br/>4-strategy ablation,<br/>costs + latency + stops"]
+    A3[test events<br/>touched once] --> G
+    G --> H["bootstrap CIs,<br/>by-regime attribution,<br/>power analysis"]
+```
+
 ---
 
 ## What's in here
@@ -116,9 +181,12 @@ mtgpt/
   data/              Alpaca/CSV loaders, synthetic generator with known truth
 integration/
   hft-node-bot/      drop-in patch for the existing Node HFT bot
+scripts/
+  make_figures.py    regenerates every figure above from real pipeline runs
 docs/
   METHOD.md          the maths and the design decisions
   FINDINGS.md        results, caveats, and what to do next
+  img/               the README figures (reproducible, seed 7)
 ```
 
 ---
@@ -173,6 +241,28 @@ so every news trade is sized against a live regime estimate.
 **Measured end-to-end**: sizing responds in **330–820µs**. The MSM fit and the
 regime-cutoff simulation happen at start-up; a new bar costs one matrix-vector
 product; the request path is a handful of cached dot products.
+
+```mermaid
+sequenceDiagram
+    participant B as Benzinga
+    participant N as news.mjs
+    participant G as GPT
+    participant S as s.mjs
+    participant R as regime.mjs
+    participant P as regime service
+
+    B->>N: headline published
+    N->>G: title + body + tickers
+    G-->>N: "AAPL: 92"  (~20 ms)
+    N->>S: scores.txt append
+    S->>R: getRegimeSizing(score, price, equity)
+    R->>P: POST /size  (timeout 25 ms)
+    P-->>R: side, qty, limit, horizon  (~0.5 ms)
+    R-->>S: decision
+    S->>S: place limit order
+
+    Note over R,P: on timeout / 5 failures:<br/>circuit breaker opens, s.mjs<br/>uses its original sizing
+```
 
 **It fails open.** If the service is slow or down, the bot falls back to exactly
 the sizing it uses today. A circuit breaker opens after five failures — eight
